@@ -1,0 +1,49 @@
+{{- if (empty .Values.configMap) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fluent-bit-aws.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "fluent-bit-aws.name" . }}
+    helm.sh/chart: {{ include "fluent-bit-aws.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Parsers_File /fluent-bit/parsers/parsers.conf
+
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        DB                /var/log/flb_kube.db
+        Parser            docker
+        Docker_Mode       On
+        Mem_Buf_Limit     5MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           On
+        Merge_Log_Key       data
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude On
+
+    [OUTPUT]
+        Name cloudwatch
+        Match   **
+        region {{ .Values.backend.cloudwatch.region }}
+{{- if .Values.backend.cloudwatch.log_group_name }}
+        log_group_name {{ .Values.backend.cloudwatch.log_group_name }}
+{{- end }}
+{{- if .Values.backend.cloudwatch.log_stream_prefix }}
+        log_stream_prefix {{ .Values.backend.cloudwatch.log_stream_prefix }}
+{{- end }}
+{{- if .Values.backend.cloudwatch.auto_create_group }}
+        auto_create_group {{ .Values.backend.cloudwatch.auto_create_group }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "fluent-bit-aws.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "fluent-bit-aws.name" . }}
+    helm.sh/chart: {{ include "fluent-bit-aws.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "fluent-bit-aws.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "fluent-bit-aws.name" . }}
+    spec:
+{{- if .Values.rbac.create }}
+      serviceAccountName: {{ include "fluent-bit-aws.fullname" . }}
+{{- end }}
+{{- with .Values.service.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+{{- end }}
+      containers:
+      - name: aws-for-fluent-bit
+        imagePullPolicy: Always
+        image: {{ .Values.service.image }}
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: fluentbit-config
+          mountPath: /fluent-bit/etc/
+        - name: mnt
+          mountPath: /mnt
+          readOnly: true
+{{- with .Values.service.resources }}
+        resources: {{ toYaml . | nindent 10 }}
+{{- end }}
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: fluentbit-config
+        configMap:
+          name: {{ include "fluent-bit-aws.fullname" . }}
+      - name: mnt
+        hostPath:
+          path: /mnt

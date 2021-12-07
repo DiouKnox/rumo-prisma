@@ -1,0 +1,72 @@
+apiVersion: v1
+data:
+  default.conf: |
+      # Devportal
+      server {
+          server_name devportal;
+          listen 0.0.0.0:{{ .Values.service.port }};
+          access_log off;
+          # Swagger UI
+          location /devportal/catalog {
+              types { 
+                  text/html html htm shtml;
+                  application/json json;
+                  text/css css;
+                  text/xml xml;
+                  application/javascript js;
+              }
+              index index.html index.htm;
+              alias /etc/devportal/swagger-ui-dist/;
+              expires 1d;
+              location ~* \.(?:json|yml|yaml)$ {
+                  expires -1;
+              }
+          }
+          
+          # Swagger editor
+          location /devportal/editor {
+              types { 
+                  text/html html htm shtml;
+                  application/json json;
+                  text/css css;
+                  text/xml xml;
+                  application/javascript js;
+                  application/zip zip;
+                  application/x-rar-compressed rar;
+                  application/x-7z-compressed 7z;
+              }
+              index index.html index.htm;
+              alias /etc/devportal/swagger-editor-dist/;
+              expires 1d;
+              location ~* \.(?:json|yml|yaml)$ {
+                  expires -1;
+              }
+          }
+
+          # API Specifications
+          location /devportal/apis {
+              types { 
+                  text/html html htm shtml;
+                  application/json json;
+                  text/css css;
+                  text/xml xml;
+                  application/javascript js;
+                  application/zip zip;
+                  application/x-rar-compressed rar;
+                  application/x-7z-compressed 7z;
+              }
+              alias /etc/devportal/apis/;
+              expires 5m;
+          }  
+
+          location = /stub_status {
+              stub_status;
+          }
+      }
+kind: ConfigMap
+metadata:
+  name: devportal-default-conf
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "application.selectorLabels" . | nindent 4 }}
+    deployment: devportal

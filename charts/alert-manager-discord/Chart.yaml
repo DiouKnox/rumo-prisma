@@ -1,0 +1,6 @@
+apiVersion: v2
+name: alert-manager-discord
+description: Alert Manager Discord integration with Helm chart for Kubernetes
+type: application
+version: 1.0.0
+appVersion: 1.0.0

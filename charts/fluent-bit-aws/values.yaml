@@ -1,0 +1,33 @@
+backend:
+  cloudwatch:
+    region: "us-east-1"
+    log_group_name: "fluentbit-cloudwatch"
+    log_stream_prefix: "fluentbit-"
+    auto_create_group: true
+service:
+  image: 906394416424.dkr.ecr.us-west-2.amazonaws.com/aws-for-fluent-bit:latest
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      cpu: 500m
+      memory: 100Mi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "beta.kubernetes.io/os"
+                operator: In
+                values:
+                  - linux
+              - key: "beta.kubernetes.io/arch"
+                operator: In
+                values:
+                  - amd64
+              - key: eks.amazonaws.com/compute-type
+                operator: NotIn
+                values:
+                  - fargate
+rbac:
+  create: true

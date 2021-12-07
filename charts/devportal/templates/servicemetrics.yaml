@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: devportal-metrics
+  annotations:
+    prometheus.io/port: "{{ .Values.metrics.port }}"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: 'true'
+spec:
+  type: {{ .Values.metrics.type }}
+  ports:
+    - port: {{ .Values.metrics.port }}
+      name: metrics
+  selector:
+    {{- include "application.labels" . | nindent 4 }}

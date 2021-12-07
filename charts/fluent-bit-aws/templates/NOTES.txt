@@ -1,0 +1,3 @@
+Verifify the Fluent Bit daemonset by peeking into the logs like so:
+
+kubectl logs ds/{{ include "fluent-bit-aws.fullname" . }} --namespace {{ .Release.Namespace }}

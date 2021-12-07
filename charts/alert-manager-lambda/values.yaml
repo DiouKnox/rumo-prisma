@@ -1,0 +1,15 @@
+replicaCount: 1
+image:
+  repository: 962245687334.dkr.ecr.sa-east-1.amazonaws.com/alert-manager-lambda:latest
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 9119
+resources:
+   limits:
+     cpu: 0.5
+     memory: 256Mi
+webhookUrl: "arn:aws:lambda:sa-east-1:962245687334:function:alert-manager"
+region: sa-east-1
+environmentLabel: " <EKS PRD> "
+namespace: "application-monitoring"

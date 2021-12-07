@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "konga.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "konga.name" . }}
+    helm.sh/chart: {{ include "konga.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "konga.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "konga.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: konga
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DB_ADAPTER
+          value: postgres
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+                key: endpoint
+                name: kong
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+                key: master_user
+                name: kong
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+                key: master_password
+                name: kong
+        - name: DB_DATABASE
+          value: kong
+        - name: TOKEN_SECRET
+          value: AsxAEakaSKGap123S#
+{{- if .Values.konga_node_seed }}
+        - name: KONGA_SEED_KONG_NODE_DATA_SOURCE_FILE
+          value: /etc/node-seeds/kong_node.data
+{{- end }}
+{{- if .Values.konga_user_seed.existingSecret }}
+        - name: KONGA_SEED_USER_DATA_SOURCE_FILE
+          value: /etc/user-seeds/{{ .Values.konga_user_seed.existingSecretKey }}
+{{- end }}
+        volumeMounts:
+          - name: konga-app
+            mountPath: /app/.tmp/
+            readOnly: false
+          - name: konga-app
+            mountPath: /app/./kongadata/uploads
+{{- if .Values.konga_node_seed }}
+          - name: konga-node-seed
+            mountPath: /etc/node-seeds/
+{{- end }}
+{{- if .Values.konga_user_seed.existingSecret }}
+          - name: konga-user-seed
+            mountPath: /etc/user-seeds/
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        ports:
+        - containerPort: 1337
+          protocol: TCP
+          name: http
+{{- with .Values.resources }}
+        resources: {{ toYaml . | nindent 10 }}
+{{- end }}
+      volumes:
+{{- if .Values.konga_node_seed }}
+      - name: konga-node-seed
+        secret:
+          secretName: {{ include "konga.fullname" . }}-node-seed
+{{- end }}
+{{- if .Values.konga_user_seed.existingSecret }}
+      - name: konga-user-seed
+        secret:
+          secretName: {{ .Values.konga_user_seed.existingSecret }}
+{{- end }}
+      - emptyDir: {}
+        name: konga-app

@@ -1,0 +1,15 @@
+replicaCount: 1
+image:
+  repository: 962245687334.dkr.ecr.us-east-2.amazonaws.com/alert-manager-discord:latest
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 9094
+resources:
+   limits:
+     cpu: 0.1
+     memory: 20Mi
+webhookUrl: "https://discordapp.com/api/webhooks/750733371549679726/quwVbxBlQWaTnIZ2YIcj9MyAjAvJjEK1dC3JMlySrIc3rbhzPc4xae4TqzafVAfQFvom"
+botAvatarUrl: "https://rumo-eks-estaticos.s3.us-east-2.amazonaws.com/discord-eks-avatar-v1.png"
+environmentLabel: " <EKS PRD> "
+namespace: "application-monitoring"

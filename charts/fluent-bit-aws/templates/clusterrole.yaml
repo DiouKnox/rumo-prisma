@@ -1,0 +1,17 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "fluent-bit-aws.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "fluent-bit-aws.name" . }}
+    helm.sh/chart: {{ include "fluent-bit-aws.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+rules:
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - pods
+  verbs: ["get", "list", "watch"]
+{{- end }}

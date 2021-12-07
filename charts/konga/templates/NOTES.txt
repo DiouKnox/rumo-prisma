@@ -1,0 +1,3 @@
+Verifify the Konga deployment is running by peeking into the logs like so:
+
+kubectl logs deploy/{{ include "konga.fullname" . }} --namespace {{ .Release.Namespace }}

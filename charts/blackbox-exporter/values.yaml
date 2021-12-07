@@ -1,0 +1,13 @@
+replicaCount: 1
+image:
+  repository: 962245687334.dkr.ecr.sa-east-1.amazonaws.com/blackbox-exporter:latest
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 9115
+resources:
+   limits:
+     cpu: 0.5
+     memory: 256Mi
+environmentLabel: " <EKS PRD> "
+namespace: "application-monitoring"
